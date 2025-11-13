@@ -29,7 +29,7 @@ struct MainAppView: View {
                 case .quest:    QuestView()
                 case .explore:  ExploreScreen()
                 case .maps:     MapsScreen()
-                case .ranks:    PlaceholderScreen(title: "RANKS")
+                case .ranks:    RanksScreen()
                 case .settings: PlaceholderScreen(title: "SETTINGS")
                 }
             }

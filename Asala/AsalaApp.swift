@@ -9,13 +9,13 @@ import SwiftUI
 
 @main
 struct YourAppNameApp: App {
-    @StateObject var api = api_manager()
+    //@StateObject var api = api_manager()
     
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(api)
+               // .environmentObject(api)
         }
     }
 }

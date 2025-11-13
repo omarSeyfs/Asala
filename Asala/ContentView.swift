@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 class AppState: ObservableObject {
-    @Published var apiManager = api_manager()
+    //@Published var apiManager = api_manager()
     @Published var userManager = user_manager()
 }
 
