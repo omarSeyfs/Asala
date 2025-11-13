@@ -8,10 +8,14 @@
 import SwiftUI
 
 @main
-struct AsalaApp: App {
+struct YourAppNameApp: App {
+    @StateObject var api = api_manager()
+    
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(api)
         }
     }
 }
