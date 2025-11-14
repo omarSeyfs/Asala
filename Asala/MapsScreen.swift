@@ -18,7 +18,7 @@ struct MapPlace: Identifiable {
 }
 
 struct MapsScreen: View {
-    @State private var cameraPosition: MapCameraPosition = .automatic
+    @State var cameraPosition: MapCameraPosition = .automatic
     @State private var selectedPlace: MapPlace?
 
     // Hardcoded sample pins
@@ -79,7 +79,10 @@ struct MapsScreen: View {
                 MapCompass()
             }
             .mapStyle(.standard)
-            .ignoresSafeArea()
+            VStack{
+                Spacer()
+                search_view(locs_arr: samplePlaces, cameraPosition: $cameraPosition)
+            }
         }
         // Focus view sheet
         .sheet(item: $selectedPlace) { place in
@@ -106,3 +109,39 @@ struct MapsScreen: View {
         }
     }
 }
+#Preview {
+    MapsScreen()
+}
+
+struct search_view: View{
+    @State var locs_arr: [MapPlace]
+    @State var search_string: String = ""
+    @Binding var cameraPosition: MapCameraPosition
+    var body: some View {
+        HStack{
+            TextField("Search for a location...", text: $search_string)
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(10)
+                .onChange(of: search_string) {
+                    for loc in locs_arr {
+                        if loc.title.lowercased() == search_string.lowercased() {
+                            cameraPosition = .region(
+                                MKCoordinateRegion(
+                                    center: loc.coordinate,
+                                    span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+                                )
+                            )
+                            search_string = ""
+                            break
+                        }
+                    }
+                }
+            Spacer()
+            Spacer()
+                .frame(width:60,height:60)
+            }
+        .padding()
+        
+        }
+    }
