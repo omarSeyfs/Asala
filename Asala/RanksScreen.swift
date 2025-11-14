@@ -100,7 +100,7 @@ struct rankRow: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 50, height: 50)
                     .scaleEffect(2.4)
-                    .offset(x: -3, y: 40, )
+                    .offset(x: -3, y: 40 )
             }
                 .clipShape(Circle()).frame(width:50, height: 50)
                
