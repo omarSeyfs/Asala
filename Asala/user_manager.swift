@@ -3,6 +3,10 @@ import UIKit
 import SwiftUI
 import CryptoKit
 import Security
+public struct session_details: Encodable {
+    let user_id: String
+    var session_token: String
+}
 class user_manager: ObservableObject {
     @Published var user_details: user_data?
     @Published var login_alert_message: String?
@@ -78,6 +82,34 @@ class user_manager: ObservableObject {
             }
         }
         return ("Failed to contact server", false)
+    }
+        func update_user_resources(coins_increment: Int, exp_increment: Int) async -> Void {
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+            let exp_increment: Int
+            let coins_increment: Int
+        }
+        if let backend_url = URL(string:"https://asala-testing.onrender.com/updateuserresources")  {
+            var request = URLRequest(url: backend_url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let session_data = session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token)
+            let post_body = post_body(session_data: session_data,exp_increment: exp_increment,coins_increment: coins_increment)
+            if let post_json = try? JSONEncoder().encode(post_body) {
+                request.httpBody = post_json
+                do {
+                    let (_, _) = try await URLSession.shared.data(for: request)
+                    self.user_details!.coins += coins_increment
+                    self.user_details!.exp += exp_increment
+                } catch {
+                    print(error.localizedDescription, error)
+                }
+            }
+            
+        }
     }
     init(){}
 }
