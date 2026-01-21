@@ -13,8 +13,9 @@ class user_manager: ObservableObject {
         var session_token: String
         let user_id: String
         var username: String
+        var coins: Int
         enum CodingKeys: String, CodingKey {
-            case emirates, exp, premium, session_token, user_id, username
+            case emirates, exp, premium, session_token, user_id, username, coins
         }
     }
     struct user_data_response_template: Decodable {
