@@ -49,7 +49,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var message = ""
-
+    @StateObject private var appState = AppState()
     var body: some View {
         VStack(spacing: 16) {
             Text("LOGIN")
@@ -69,7 +69,13 @@ struct LoginView: View {
                 .cornerRadius(8)
                 .foregroundColor(.white)
 
-            Button(action: { loggedIn = true }) {
+            Button(){
+                Task{
+                    let (user_data,_,logged_in) = await appState.userManager.log_in(username:"test_user1", password:"abc123")
+                    appState.userManager.user_details = user_data
+                    loggedIn = logged_in
+                }
+            } label: {
                 Text("LOGIN")
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -93,17 +99,24 @@ struct LoginView: View {
 struct SignUpView: View {
     @Binding var showLogin: Bool
     @Binding var loggedIn: Bool
-    @State private var email = ""
+    @State private var username = ""
     @State private var password = ""
+    @State private var email = ""
     @State private var confirmPassword = ""
     @State private var message = ""
-
+    @StateObject private var appState = AppState()
     var body: some View {
         VStack(spacing: 16) {
             Text("SIGN UP")
                 .font(.system(size: 28, weight: .bold, design: .monospaced))
                 .foregroundColor(.white)
 
+            TextField("", text: $username, prompt: Text("Username").foregroundColor(.white.opacity(0.7)))
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .cornerRadius(8)
+                .foregroundColor(.white)
+                .textInputAutocapitalization(.never)
             TextField("", text: $email, prompt: Text("Email").foregroundColor(.white.opacity(0.7)))
                 .padding()
                 .background(Color.white.opacity(0.1))
@@ -123,7 +136,13 @@ struct SignUpView: View {
                 .cornerRadius(8)
                 .foregroundColor(.white)
 
-            Button(action: { loggedIn = true }) {
+            Button() {
+                Task {
+                    let (display_message, _) = await appState.userManager.create_user(username:username,password:password,emirates:[], email:email)
+                    print(display_message)
+                    showLogin = true
+                }
+            }label: {
                 Text("SIGN UP")
                     .frame(maxWidth: .infinity)
                     .padding()
