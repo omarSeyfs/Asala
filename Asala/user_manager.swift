@@ -1,9 +1,3 @@
-//
-//  user_manager.swift
-//  asala_backend
-//
-//  Created by Tymofii Minin on 07/08/2025.
-//
 import Foundation
 import UIKit
 import SwiftUI
@@ -13,14 +7,14 @@ class user_manager: ObservableObject {
     @Published var user_details: user_data?
     @Published var login_alert_message: String?
     struct user_data: Decodable {
-        var emirate: String
+        var emirates: [String]
         var exp: Int
         var premium: Bool
         var session_token: String
         let user_id: String
         var username: String
         enum CodingKeys: String, CodingKey {
-            case emirate, exp, premium, session_token, user_id, username
+            case emirates, exp, premium, session_token, user_id, username
         }
     }
     struct user_data_response_template: Decodable {
@@ -57,17 +51,18 @@ class user_manager: ObservableObject {
         }
         return (nil, "Failed to contact server", false)
     }
-    func create_user(username: String, password: String, emirate: String) async -> (String, Bool) {
+    func create_user(username: String, password: String, emirates: [String], email: String) async -> (String, Bool) {
         struct post_body: Encodable {
             let username: String
             let password: String
-            let emirate: String
+            let emirates: [String]
+            let email: String
         }
         if let signin_url = URL(string:"https://asala-testing.onrender.com/createuser") {
             var request = URLRequest(url: signin_url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            let post_body = post_body(username:username,password:password,emirate:emirate)
+            let post_body = post_body(username:username,password:password,emirates:emirates, email: email)
             if let post_json = try? JSONEncoder().encode(post_body) {
                 request.httpBody = post_json
                 do {
