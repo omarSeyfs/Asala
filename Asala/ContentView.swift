@@ -10,37 +10,43 @@ struct ContentView: View {
     @State private var loggedIn = false
     @State private var showLogin = true
     @StateObject private var appState = AppState()
-
+    let timer = Timer.publish(every:1800, on: .main, in: .common).autoconnect()
     var body: some View {
-        if loggedIn {
-            MainAppView()
-                .environmentObject(appState)
-        } else {
-            ZStack {
-                Color(red: 10/255, green: 20/255, blue: 60/255)
-                    .ignoresSafeArea()
+        ZStack{
+            if loggedIn {
+                MainAppView()
+                    .environmentObject(appState)
+            } else {
+                ZStack {
+                    Color(red: 10/255, green: 20/255, blue: 60/255)
+                        .ignoresSafeArea()
 
-                VStack {
-                    if showLogin {
-                        LoginView(showLogin: $showLogin, loggedIn: $loggedIn)
-                            .environmentObject(appState)
-                    } else {
-                        SignUpView(showLogin: $showLogin, loggedIn: $loggedIn)
-                            .environmentObject(appState)
+                    VStack {
+                        if showLogin {
+                            LoginView(showLogin: $showLogin, loggedIn: $loggedIn)
+                                .environmentObject(appState)
+                        } else {
+                            SignUpView(showLogin: $showLogin, loggedIn: $loggedIn)
+                                .environmentObject(appState)
+                        }
                     }
+                    .padding()
+                    .background(Color(red: 20/255, green: 30/255, blue: 80/255).opacity(0.95))
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.6), radius: 10, x: 0, y: 4)
+                    .padding()
                 }
-                .padding()
-                .background(Color(red: 20/255, green: 30/255, blue: 80/255).opacity(0.95))
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.6), radius: 10, x: 0, y: 4)
-                .padding()
             }
+        }.onReceive(timer) { input in
+            Task{if appState.userManager.password != nil {
+                let (user_data, _, _) = await appState.userManager.log_in(username:appState.userManager.user_details!.username,password:appState.userManager.password!)
+                appState.userManager.user_details = user_data
+            }}}
         }
-    }
 }
 
 struct LoginView: View {
@@ -71,8 +77,11 @@ struct LoginView: View {
 
             Button(){
                 Task{
-                    let (user_data,_,logged_in) = await appState.userManager.log_in(username:"test_user1", password:"abc123")
+                    let (user_data,_,logged_in) = await appState.userManager.log_in(username:email, password:password)
                     appState.userManager.user_details = user_data
+                    if logged_in {
+                        appState.userManager.password = password
+                    }
                     loggedIn = logged_in
                 }
             } label: {
@@ -170,3 +179,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
