@@ -10,7 +10,7 @@ struct ContentView: View {
     @State private var loggedIn = false
     @State private var showLogin = true
     @StateObject private var appState = AppState()
-    let timer = Timer.publish(every:1800, on: .main, in: .common).autoconnect()
+    let timer = Timer.publish(every:1200, on: .main, in: .common).autoconnect()
     var body: some View {
         ZStack{
             if loggedIn {
