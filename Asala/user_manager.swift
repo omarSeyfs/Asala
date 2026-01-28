@@ -41,6 +41,18 @@ class user_manager: ObservableObject {
     enum resource {
         case coins, exp
     }
+    func display_resource(resource_type: resource) -> Int {
+        if user_details != nil {
+        switch resource_type {
+        case .coins:
+            return self.user_details!.coins + self.coin_difference
+        case .exp:
+            return self.user_details!.exp + self.exp_difference
+        }
+        } else {
+            return 0
+        }
+    }
     func validate_resource_change(increment: Int, resource_type: resource) -> Bool {
         if self.user_details != nil {
             switch resource_type {
