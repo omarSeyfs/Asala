@@ -4,8 +4,11 @@ import SwiftUI
 import CryptoKit
 import Security
 class user_manager: ObservableObject {
-    @Published var user_details: user_data?
+    @Published public var user_details: user_data?
     @Published var login_alert_message: String?
+    @Published var password: String?
+    var coin_difference: Int = 0
+    var exp_difference: Int = 0
     struct user_data: Decodable {
         var emirates: [String]
         var exp: Int
@@ -30,11 +33,26 @@ class user_manager: ObservableObject {
         let username: String
         let password: String
     }
-    struct loc_validation_response_template: Decodable {
-        let valid_Location: Bool
-        let display_message: String
-        let coins_gained: Int
-        let exp_gained: Int
+    enum resource {
+        case coins, exp
+    }
+    func validate_resource_change(increment: Int, resource_type: resource) -> Bool {
+        if self.user_details != nil {
+            switch resource_type {
+            case .coins:
+                if self.user_details!.coins + self.coin_difference + increment > 0 {
+                    self.coin_difference += increment
+                    return true
+                } else {return false}
+            case .exp:
+                if self.user_details!.exp + self.exp_difference + increment > 0 {
+                    self.exp_difference += increment
+                    return true
+                } else {return false}
+            }
+        } else {
+            return false
+        }
     }
     func log_in(username: String, password: String) async -> (user_data?, String, Bool) {
             let url_string = "https://asala-testing.onrender.com/login"
@@ -77,7 +95,7 @@ class user_manager: ObservableObject {
         
         return ("Failed to contact server", false)
     }
-    func update_user_resources(coins_increment: Int, exp_increment: Int) async -> Void {
+    func update_user_resources() async -> Void {
         if self.user_details == nil {
             return
         }
@@ -88,11 +106,9 @@ class user_manager: ObservableObject {
         }
         let backend_url = "https://asala-testing.onrender.com/updateuserresources"
         let session_data = session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token)
-        let post_struct = post_body(session_data: session_data,exp_increment: exp_increment,coins_increment: coins_increment)
+        let post_struct = post_body(session_data: session_data,exp_increment: self.exp_difference,coins_increment: self.coin_difference)
         if let post_json = try? JSONEncoder().encode(post_struct) {
             let _ = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
-            self.user_details!.coins += coins_increment
-            self.user_details!.exp += exp_increment
         }
             
         
@@ -112,36 +128,6 @@ class user_manager: ObservableObject {
             let _ = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
         }
     }
-    func validate_location(loc_id: String, user_lat: Float, user_lon: Float) async -> loc_validation_response_template? {
-        if self.user_details == nil {
-            return nil
-        }
-        struct post_body: Encodable {
-            let session_data: session_details
-            let loc_id: String
-            let user_lat: Float
-            let user_lon: Float
-        }
-        let backend_url = "https://asala-testing.onrender.com/validatelocation"
-        let session_data = session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token)
-        let post_struct = post_body(session_data:session_data,loc_id:loc_id,user_lat:user_lat,user_lon:user_lon)
-        if let post_json = try? JSONEncoder().encode(post_struct) {
-            let response_data = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
-            if let response_data = response_data {
-                let decoder = JSONDecoder()
-                decoder.keyDecodingStrategy = .useDefaultKeys
-                do{
-                    let response = try decoder.decode(loc_validation_response_template.self, from: response_data)
-                    return response
-                }catch{
-                    print(error.localizedDescription, error)
-                    return nil
-                }
-            }
-        }
-        
-        return nil
-    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
@@ -159,6 +145,10 @@ public func get_data_from_post_request(url_string: String, json_data: Data) asyn
         }
     }
     return nil
+}
+public struct session_details: Encodable {
+    let user_id: String
+    var session_token: String
 }
 
 
