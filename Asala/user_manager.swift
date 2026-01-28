@@ -33,10 +33,21 @@ class user_manager: ObservableObject {
         let password: String
     }
     struct loc_validation_response_template: Decodable {
-        let valid_Location: Bool
+        let valid_location: Bool
         let display_message: String
         let coins_gained: Int
         let exp_gained: Int
+        enum CodingKeys: String, CodingKey {
+            case valid_location, display_message, coins_gained, exp_gained
+        }
+    }
+    public struct leaderboard_item: Decodable {
+        let display_message: String
+        let exp: Int
+        let username: String
+        enum CodingKeys: String, CodingKey {
+            case display_message, exp, username
+        }
     }
     enum resource {
         case coins, exp
@@ -176,6 +187,30 @@ class user_manager: ObservableObject {
         }
         
         return nil
+    }
+    func get_leaderboard() async -> [leaderboard_item] {
+        if self.user_details == nil {
+            return []
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+        }
+        let post_struct = post_body(session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/getleaderboard"
+            let data = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
+            if let data = data {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .useDefaultKeys
+                do {
+                    let response = try decoder.decode([leaderboard_item].self,from: data)
+                    return response
+                } catch {
+                    return []
+                }
+            }
+        }
+        return []
     }
     init(){}
 }
