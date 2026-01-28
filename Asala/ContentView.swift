@@ -10,7 +10,7 @@ struct ContentView: View {
     @State private var loggedIn = false
     @State private var showLogin = true
     @StateObject private var appState = AppState()
-    let timer = Timer.publish(every:1200, on: .main, in: .common).autoconnect()
+    let timer = Timer.publish(every:1800, on: .main, in: .common).autoconnect()
     var body: some View {
         ZStack{
             if loggedIn {
@@ -46,6 +46,11 @@ struct ContentView: View {
                 let (user_data, _, _) = await appState.userManager.log_in(username:appState.userManager.user_details!.username,password:appState.userManager.password!)
                 appState.userManager.user_details = user_data
             }}}
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
+            Task{
+                await appState.userManager.update_user_resources()
+            }
+        }
         }
 }
 
