@@ -6,6 +6,7 @@ import Security
 class user_manager: ObservableObject {
     @Published public var user_details: user_data?
     @Published var login_alert_message: String?
+    @Published var password: String?
     var coin_difference: Int = 0
     var exp_difference: Int = 0
     struct user_data: Decodable {
