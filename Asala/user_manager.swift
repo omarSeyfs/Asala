@@ -124,7 +124,7 @@ class user_manager: ObservableObject {
         
         return ("Failed to contact server", false)
     }
-    func update_user_resources(coins_increment: Int, exp_increment: Int) async -> Void {
+    func update_user_resources() async -> Void {
         if self.user_details == nil {
             return
         }
@@ -135,11 +135,9 @@ class user_manager: ObservableObject {
         }
         let backend_url = "https://asala-testing.onrender.com/updateuserresources"
         let session_data = session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token)
-        let post_struct = post_body(session_data: session_data,exp_increment: exp_increment,coins_increment: coins_increment)
+        let post_struct = post_body(session_data: session_data,exp_increment: self.exp_difference,coins_increment: self.coin_difference)
         if let post_json = try? JSONEncoder().encode(post_struct) {
             let _ = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
-            self.user_details!.coins += coins_increment
-            self.user_details!.exp += exp_increment
         }
             
         
