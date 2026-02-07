@@ -211,6 +211,41 @@ class user_manager: ObservableObject {
         }
         return []
     }
+    func update_user_emirates(emirates_arr:[String]) async -> Bool {
+        if self.user_details == nil {
+            return false
+        }
+        struct response: Decodable {
+            let operation_successful: Bool
+            let display_message: String
+            enum CodingKeys: String, CodingKey {
+                case operation_successful, display_message
+            }
+        }
+        struct post_body: Encodable {
+            let emirates: [String]
+            let session_data: session_details
+        }
+        let post_struct = post_body(emirates:emirates_arr,session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/setnewemirates"
+            let data = await get_data_from_post_request(url_string:backend_url, json_data: post_json)
+            if let data = data {
+                do {
+                    let decoder = JSONDecoder()
+                    decoder.keyDecodingStrategy = .useDefaultKeys
+                    let backend_response = try decoder.decode(response.self, from: data)
+                    print(backend_response.display_message)
+                    return backend_response.operation_successful
+                } catch {
+                    print("Server error")
+                    return false
+                }
+            }
+            
+        }
+        return false
+    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
