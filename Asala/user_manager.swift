@@ -3,10 +3,24 @@ import UIKit
 import SwiftUI
 import CryptoKit
 import Security
+public struct cosmetic_item: Decodable, Equatable, Identifiable, Hashable {
+    public var id: UUID = UUID()
+    var cosmetic_id: String
+    var image_data: String
+    var inapp_name: String
+    var inapp_cost: Int
+    enum CodingKeys: String, CodingKey {
+        case cosmetic_id, image_data, inapp_name, inapp_cost
+    }
+}
 class user_manager: ObservableObject {
     @Published public var user_details: user_data?
     @Published var login_alert_message: String?
     @Published var password: String?
+    @Published var cosmetics: [cosmetic_item] = []
+    @Published var equipped_head: cosmetic_item?
+    @Published var equipped_body: cosmetic_item?
+    @Published var equipped_face: cosmetic_item?
     var coin_difference: Int = 0
     var exp_difference: Int = 0
     struct user_data: Decodable {
@@ -246,6 +260,29 @@ class user_manager: ObservableObject {
         }
         return false
     }
+    func get_all_cosmetics() async -> Void {
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+        }
+        let post_struct = post_body(session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/getcosmetics"
+            let data = await get_data_from_post_request(url_string:backend_url, json_data: post_json)
+            if let data = data {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .useDefaultKeys
+                do {
+                    self.cosmetics = try decoder.decode([cosmetic_item].self,from:data)
+                } catch{
+                    print(error.localizedDescription)
+                    }
+            }
+        }
+        
+    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
@@ -268,5 +305,14 @@ public struct session_details: Encodable {
     let user_id: String
     var session_token: String
 }
-
+extension cosmetic_item {
+    func get_image() -> Image {
+        if self.image_data != "" {
+            let data: Data = Data(base64Encoded: self.image_data)!
+            return Image(uiImage: UIImage(data: data)!)
+        } else {
+            return Image(systemName: "xmark.circle")
+        }
+    }
+}
 
