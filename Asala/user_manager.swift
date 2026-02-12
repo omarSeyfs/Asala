@@ -13,6 +13,19 @@ public struct cosmetic_item: Decodable, Equatable, Identifiable, Hashable {
         case cosmetic_id, image_data, inapp_name, inapp_cost
     }
 }
+public struct map_location: Decodable, Equatable, Identifiable, Hashable {
+    public var id: UUID = UUID()
+    var loc_id: String
+    var loc_name: String
+    var description: String
+    var emirate: String
+    var images: [String]
+    var center_lat: Double
+    var center_lon: Double
+    enum CodingKeys: String, CodingKey {
+        case loc_id, loc_name, description, emirate, images, center_lat, center_lon
+    }
+}
 class user_manager: ObservableObject {
     @Published public var user_details: user_data?
     @Published var login_alert_message: String?
@@ -283,6 +296,28 @@ class user_manager: ObservableObject {
         }
         
     }
+    func get_locations() async -> Void {
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+        }
+        let post_struct = post_body(session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/getlocations"
+            let data = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
+            if let data = data {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .useDefaultKeys
+                do {
+                    self.locations = try decoder.decode([map_location].self,from:data)
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
@@ -315,4 +350,21 @@ extension cosmetic_item {
         }
     }
 }
-
+extension map_location {
+    func get_image_arr() -> [Image] {
+        if self.images != [] {
+            var return_arr: [Image] = []
+            for str in self.images {
+                let data: Data = Data(base64Encoded: str)!
+                let image = Image(uiImage: UIImage(data: data)!)
+                return_arr.append(image)
+            return return_arr
+            }
+                        
+        }
+        return [Image(systemName:"xmark.circle")]
+    }
+    func get_coordinate() -> CLLocationCoordinate2D {
+        return CLLocationCoordinate2D(latitude: self.center_lat, longitude: self.center_lon)
+    }
+}
