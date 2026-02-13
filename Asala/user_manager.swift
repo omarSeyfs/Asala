@@ -26,6 +26,23 @@ public struct map_location: Decodable, Equatable, Identifiable, Hashable {
         case loc_id, loc_name, description, emirate, images, center_lat, center_lon
     }
 }
+public struct event: Identifiable, Decodable, Equatable, Hashable {
+    public var id: UUID = UUID()
+    let event_id: String
+    let emirate: String
+    let event_name: String
+    let exp_gained: Int
+    let description: String
+    let time_window: String
+    let date_window: String
+    let event_lat: Double
+    let event_lon: Double
+    let event_images: [String]
+    let event_urls: [String]
+    enum CodingKeys: String, CodingKey {
+        case event_id, emirate, event_name, exp_gained, description, time_window, date_window, event_lat, event_lon, event_images, event_urls
+    }
+}
 class user_manager: ObservableObject {
     @Published public var user_details: user_data?
     @Published var login_alert_message: String?
