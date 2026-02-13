@@ -31,6 +31,8 @@ class user_manager: ObservableObject {
     @Published var login_alert_message: String?
     @Published var password: String?
     @Published var cosmetics: [cosmetic_item] = []
+    @Published var locations: [map_location] = []
+    @Published var events: [event] = []
     @Published var equipped_head: cosmetic_item?
     @Published var equipped_body: cosmetic_item?
     @Published var equipped_face: cosmetic_item?
@@ -318,6 +320,28 @@ class user_manager: ObservableObject {
             }
         }
     }
+    func get_events() async -> Void {
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+        }
+        let post_struct = post_body(session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/getevents"
+            let data = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
+            if let data = data {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .useDefaultKeys
+                do {
+                    self.events = try decoder.decode([event].self,from:data)
+                } catch {
+                    print(error.localizedDescription)
+                }
+            }
+        }
+    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
@@ -366,5 +390,23 @@ extension map_location {
     }
     func get_coordinate() -> CLLocationCoordinate2D {
         return CLLocationCoordinate2D(latitude: self.center_lat, longitude: self.center_lon)
+    }
+}
+extension event {
+    func get_image_arr() -> [Image] {
+        if self.event_images != [] {
+            var return_arr: [Image] = []
+            for str in self.event_images {
+                let data: Data = Data(base64Encoded: str)!
+                let image = Image(uiImage: UIImage(data: data)!)
+                return_arr.append(image)
+            return return_arr
+            }
+                        
+        }
+        return [Image(systemName:"xmark.circle")]
+    }
+    func get_coordinate() -> CLLocationCoordinate2D {
+        return CLLocationCoordinate2D(latitude: self.event_lat, longitude: self.event_lon)
     }
 }
