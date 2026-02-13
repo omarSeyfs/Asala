@@ -342,6 +342,83 @@ class user_manager: ObservableObject {
             }
         }
     }
+    func get_equipped_cosmetics() async -> Void {
+        if (self.user_details == nil) || (self.cosmetics == []) {
+            return
+        }
+        struct post_body: Encodable {
+            let session_data: session_details
+        }
+        struct response: Decodable, Hashable, Identifiable {
+            var id: UUID = UUID()
+            let head_id: String
+            let face_id: String
+            let body_id: String
+            enum CodingKeys: String, CodingKey {
+                case head_id, face_id, body_id
+            }
+        }
+        let post_struct = post_body(session_data:session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asaala-testing.onrender.com/getevents"
+            let data = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
+            if let data = data {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .useDefaultKeys
+                do {
+                    let response_struct = try decoder.decode(response.self,from:data)
+                    for cosmetic in self.cosmetics {
+                        if cosmetic.cosmetic_id == response_struct.head_id {
+                            self.equipped_head = cosmetic
+                        } else if cosmetic.cosmetic_id == response_struct.body_id {
+                            self.equipped_body = cosmetic
+                        } else if cosmetic.cosmetic_id == response_struct.face_id {
+                            self.equipped_face = cosmetic
+                        }
+                        if (self.equipped_head != nil) && (self.equipped_body != nil) && (self.equipped_face != nil) {
+                            break
+                        }
+                        
+                    }
+                } catch {
+                    print(error.localizedDescription, error)
+                }
+            }
+        }
+    }
+    func assign_cosmetic_ownership(cosmetic_id: String) async -> Void {
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let cosmetic_id: String
+            let session_data: session_details
+        }
+        let post_struct = post_body(cosmetic_id: cosmetic_id, session_data: session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = "https://asala-testing.onrender.com/assigncosmeticownership"
+            let _ = await get_data_from_post_request(url_string:backend_url,json_data:post_json)
+        }
+        
+        
+    }
+    func toggle_cosmetic_equip(cosmetic_slot: String, cosmetic_id: String, equip: Bool) async -> Void {
+        //cosmetic_slot is one of 'head', 'face', or 'body'
+        //equip should be set to 'true' if the cosmetic is being equipped, and 'false' if the cosmetic is being unequipped
+        if self.user_details == nil {
+            return
+        }
+        struct post_body: Encodable {
+            let cosmetic_id: String
+            let cosmetic_slot: String
+            let session_data: session_details
+        }
+        let post_struct = post_body(cosmetic_id: cosmetic_id, cosmetic_slot: cosmetic_slot, session_data: session_details(user_id:self.user_details!.user_id,session_token:self.user_details!.session_token))
+        if let post_json = try? JSONEncoder().encode(post_struct) {
+            let backend_url = equip ? "https://asala-testing.onrender.com/equipcosmetic" : "https://asala-testing.onrender.com/unequipcosmetic"
+            let _ = await get_data_from_post_request(url_string: backend_url, json_data: post_json)
+        }
+    }
     init(){}
 }
 public func get_data_from_post_request(url_string: String, json_data: Data) async -> Data? {
