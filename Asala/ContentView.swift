@@ -10,23 +10,13 @@ class AppState: ObservableObject {
 struct ContentView: View {
     @State private var loggedIn = false
     @State private var showLogin = true
-    @State private var needsEmirateSelection = false
     @StateObject private var appState = AppState()
     let timer = Timer.publish(every:1800, on: .main, in: .common).autoconnect()
     var body: some View {
         ZStack{
             if loggedIn {
-                if needsEmirateSelection {
-                    EmirateSelectionView(
-                        onComplete: {
-                            needsEmirateSelection = false
-                        }
-                    )
+                MainAppView()
                     .environmentObject(appState)
-                } else {
-                    MainAppView()
-                        .environmentObject(appState)
-                }
             } else {
                 ZStack {
                     Color(red: 10/255, green: 20/255, blue: 60/255)
@@ -34,7 +24,7 @@ struct ContentView: View {
 
                     VStack {
                         if showLogin {
-                            LoginView(showLogin: $showLogin, loggedIn: $loggedIn, needsEmirateSelection: $needsEmirateSelection)
+                            LoginView(showLogin: $showLogin, loggedIn: $loggedIn)
                                 .environmentObject(appState)
                         } else {
                             SignUpView(showLogin: $showLogin, loggedIn: $loggedIn)
@@ -72,9 +62,7 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var message = ""
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var appState: AppState
-    @Binding var needsEmirateSelection: Bool
+    @StateObject private var appState = AppState()
 
     var body: some View {
         VStack(spacing: 16) {
@@ -102,22 +90,7 @@ struct LoginView: View {
                     if logged_in {
                         appState.userManager.password = password
                     }
-                    if logged_in {
-                        appState.userManager.password = password
-                        appState.userManager.user_details = user_data
-                        
-                        // data loaded here
-                        await appState.userManager.get_locations()
-                        await appState.userManager.get_events()
-                        await appState.userManager.get_all_cosmetics()
-                        
-                        loggedIn = true
-                        
-                        let stored = UserDefaults.standard.stringArray(forKey: "selected_emirates")
-                        if stored == nil || stored!.isEmpty {
-                            needsEmirateSelection = true
-                        }
-                    }
+                    loggedIn = logged_in
                     
                 }
 
@@ -150,7 +123,7 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var confirmPassword = ""
     @State private var message = ""
-    @EnvironmentObject var appState: AppState
+    @StateObject private var appState = AppState()
     var body: some View {
         VStack(spacing: 16) {
             Text("SIGN UP")
