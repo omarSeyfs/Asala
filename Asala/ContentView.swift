@@ -4,18 +4,29 @@ import SwiftUI
 class AppState: ObservableObject {
     //@Published var apiManager = api_manager()
     @Published var userManager = user_manager()
+    
 }
 
 struct ContentView: View {
     @State private var loggedIn = false
     @State private var showLogin = true
+    @State private var needsEmirateSelection = false
     @StateObject private var appState = AppState()
     let timer = Timer.publish(every:1800, on: .main, in: .common).autoconnect()
     var body: some View {
         ZStack{
             if loggedIn {
-                MainAppView()
+                if needsEmirateSelection {
+                    EmirateSelectionView(
+                        onComplete: {
+                            needsEmirateSelection = false
+                        }
+                    )
                     .environmentObject(appState)
+                } else {
+                    MainAppView()
+                        .environmentObject(appState)
+                }
             } else {
                 ZStack {
                     Color(red: 10/255, green: 20/255, blue: 60/255)
@@ -23,7 +34,7 @@ struct ContentView: View {
 
                     VStack {
                         if showLogin {
-                            LoginView(showLogin: $showLogin, loggedIn: $loggedIn)
+                            LoginView(showLogin: $showLogin, loggedIn: $loggedIn, needsEmirateSelection: $needsEmirateSelection)
                                 .environmentObject(appState)
                         } else {
                             SignUpView(showLogin: $showLogin, loggedIn: $loggedIn)
@@ -48,6 +59,7 @@ struct ContentView: View {
             }}}
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
             Task{
+                // Place holder for now cuz of the error, supposed to be replaced by the formula
                 await appState.userManager.update_user_resources()
             }
         }
@@ -60,7 +72,10 @@ struct LoginView: View {
     @State private var email = ""
     @State private var password = ""
     @State private var message = ""
-    @StateObject private var appState = AppState()
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var appState: AppState
+    @Binding var needsEmirateSelection: Bool
+
     var body: some View {
         VStack(spacing: 16) {
             Text("LOGIN")
@@ -87,8 +102,25 @@ struct LoginView: View {
                     if logged_in {
                         appState.userManager.password = password
                     }
-                    loggedIn = logged_in
+                    if logged_in {
+                        appState.userManager.password = password
+                        appState.userManager.user_details = user_data
+                        
+                        // data loaded here
+                        await appState.userManager.get_locations()
+                        await appState.userManager.get_events()
+                        await appState.userManager.get_all_cosmetics()
+                        
+                        loggedIn = true
+                        
+                        let stored = UserDefaults.standard.stringArray(forKey: "selected_emirates")
+                        if stored == nil || stored!.isEmpty {
+                            needsEmirateSelection = true
+                        }
+                    }
+                    
                 }
+
             } label: {
                 Text("LOGIN")
                     .frame(maxWidth: .infinity)
@@ -118,7 +150,7 @@ struct SignUpView: View {
     @State private var email = ""
     @State private var confirmPassword = ""
     @State private var message = ""
-    @StateObject private var appState = AppState()
+    @EnvironmentObject var appState: AppState
     var body: some View {
         VStack(spacing: 16) {
             Text("SIGN UP")
@@ -184,4 +216,3 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
-
