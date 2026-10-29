@@ -3,6 +3,8 @@ import UIKit
 import SwiftUI
 import CryptoKit
 import Security
+import MapKit
+
 public struct cosmetic_item: Decodable, Equatable, Identifiable, Hashable {
     public var id: UUID = UUID()
     var cosmetic_id: String

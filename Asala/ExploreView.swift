@@ -11,13 +11,13 @@ import MapKit
 // MARK: - Explore Screen
 struct ExploreScreen: View {
     @State private var locations: [LocCard] = [
-        .init(id: "qasr", city: "Abu Dhabi", title: "Qasr Al Hosn", time: "11AM - 7PM", imageName: "qasr_sample"),
-        .init(id: "jebel", city: "AL AIN", title: "Jebel Al H...", time: "11AM - 7PM", imageName: "mountain_sample"),
+        .init(id: "qasr", city: "Abu Dhabi", title: "Qasr Al Hosn", time: "11AM - 7PM", imageName: "qasr"),
+        .init(id: "jebel", city: "AL AIN", title: "Jebel Al H...", time: "11AM - 7PM", imageName: "jebel"),
     ]
     @State private var events: [EventItem] = [
-        .init(id: "book", title: "Abu Dhabi book fair", period: "11 - 18 JAN", time: "9AM - 9PM", xp: 3, imageName: "bookfair_sample"),
-        .init(id: "plants", title: "Native: Plants in the UAE", period: "21 - 30 MAY", time: "6PM - 12AM", xp: 5, imageName: "plants_sample"),
-        .init(id: "expo", title: "Najah Expo 2025", period: "11 - 18 DEC", time: "—", xp: 2, imageName: "expo_sample")
+        .init(id: "book", title: "Abu Dhabi Book Fair", period: "11 - 18 JAN", time: "9AM - 9PM", xp: 3, imageName: "book"),
+        .init(id: "plants", title: "Native: Plants in the UAE", period: "21 - 30 MAY", time: "6PM - 12AM", xp: 5, imageName: "plants"),
+        .init(id: "expo", title: "Najah Expo 2025", period: "11 - 18 DEC", time: "—", xp: 2, imageName: "expo")
     ]
 
     @State private var showLocationFocus: LocCard?
@@ -207,7 +207,7 @@ struct LocationFocusView: View {
                     Image(loc.imageName)
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 320)
+                        .frame(width: 350, height: 320)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(Theme.cardStroke(corner: 16))
                         .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 8)
@@ -300,7 +300,7 @@ struct EventFocusView: View {
                     Image(event.imageName)
                         .resizable()
                         .scaledToFill()
-                        .frame(height: 320)
+                        .frame(width: 350, height: 320)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(Theme.cardStroke(corner: 16))
                         .shadow(color: .black.opacity(0.35), radius: 12, x: 0, y: 8)

@@ -35,7 +35,12 @@ struct QuestView: View {
 
     var body: some View {
         ZStack {
-            Color("BackgroundColor").ignoresSafeArea()
+            
+
+            Image("gameBg")
+                .resizable()
+                .ignoresSafeArea()
+                .scaledToFit()
 
             VStack(spacing: 12) {
                 HStack {
@@ -49,8 +54,10 @@ struct QuestView: View {
                 Spacer()
 
                 ZStack {
-                    Image("perryRock").resizable().scaledToFit().frame(height: 120)
+                    Image("perryRock").resizable().scaledToFit().frame(height: 300)
+                        .offset(x: 0, y: 60)
                     Image("perryBase").resizable().scaledToFit().frame(width: 220)
+                        .offset(x: -5)
                     if let eq = items.first(where: { $0.equipped }) {
                         Image(eq.imageName)
                             .resizable().scaledToFit()
@@ -87,6 +94,7 @@ struct QuestView: View {
                 .padding(.bottom, 20)
             }
         }
+       // .background(Image("gameBg"))
         .sheet(isPresented: $showingShop) {
             ShopScreen(coins: $coins, items: $items)
                 .presentationDetents([.fraction(0.85)])
